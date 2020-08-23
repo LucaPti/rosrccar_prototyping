@@ -163,6 +163,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/kinematic_simulator.py
   scripts/birdview_visualizer.py
+  scripts/state_estimator.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

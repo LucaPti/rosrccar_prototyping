@@ -23,7 +23,7 @@ def kinematic_simulator():
     rospy.init_node('kinematic_simulator', anonymous=True)
     # define parameter
     # vehicle dynamics
-    k_acceleration_speed = 1
+    k_acceleration_speed = -0.2
     k_acceleration_input = 1
     vehicle_length = 0.3
     k_steering_input = 1
@@ -40,11 +40,13 @@ def kinematic_simulator():
         state1 = VehicleState()
         # longitudinal dynamics
         state1.acc_x = k_acceleration_speed*state.velocity+k_acceleration_input*state.acc_command
-        state1.velocity = 0.95*state.velocity + state.acc_x*delta_t
+        state1.velocity = state.velocity + state.acc_x*delta_t
         if np.abs(state1.velocity)<1e-5:
             state1.velocity = 0
-        delta_x_veh = state.velocity*delta_t + 0.5*state.acc_x*delta_t*delta_t
+        delta_x_veh = (state.velocity*delta_t) + (0.5*state.acc_x*delta_t*delta_t)
         # lateral dynamics
+        state1.steer_command = state.steer_command
+        state1.acc_command = state.acc_command
         state1.yawrate = np.tan(k_steering_input*state.steer_command)*state.velocity/vehicle_length
         state1.yaw = state.yaw + state.yawrate*delta_t
         acc_x_world = -np.sin(state.yaw)*state.yawrate*state.velocity+np.cos(state.yaw)*state.acc_x
@@ -57,14 +59,15 @@ def kinematic_simulator():
         state1.pos_y = state.pos_y + delta_y_world
         state = state1
         # measurement
-        measurement.optical_y = delta_y_world*k_optical_dpm
-        measurement.optical_x = delta_x_world*k_optical_dpm
+        measurement.optical_y = int((-np.sin(state.yaw)*delta_x_world+np.cos(state.yaw)*delta_y_world)*k_optical_dpm)
+        measurement.optical_x = int((np.cos(state.yaw)*delta_x_world+np.sin(state.yaw)*delta_y_world)*k_optical_dpm)
         measurement.optical_valid = True
-        measurement.encoder_ticks = delta_x_veh*k_encoder_tpm
+        measurement.encoder_ticks = int(delta_x_veh*k_encoder_tpm)
         measurement.encoder_valid = True
         measurement.imu_acc_x = state.acc_x*k_imu_tpms2
-        measurement.imu_acc_y = np.tan(k_steering_input*state.steer_command)/vehicle_length
+        measurement.imu_acc_y = np.tan(k_steering_input*state.steer_command)*state.velocity/vehicle_length*state.velocity*k_imu_tpms2
         measurement.imu_acc_z = 800
+        measurement.imu_yaw = state.yaw
         measurement.imu_valid = True
         measurement.rc_output_accelerator = state.acc_command
         measurement.rc_output_steering = state.steer_command
