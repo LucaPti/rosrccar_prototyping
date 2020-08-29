@@ -23,8 +23,8 @@ def kinematic_simulator():
     rospy.init_node('kinematic_simulator', anonymous=True)
     # define parameter
     # vehicle dynamics
-    k_acceleration_speed = -0.2
-    k_acceleration_input = 1
+    k_acceleration_speed = -1
+    k_acceleration_input = 5
     vehicle_length = 0.3
     k_steering_input = 1
     delta_t = 0.02
@@ -64,9 +64,9 @@ def kinematic_simulator():
         measurement.optical_valid = True
         measurement.encoder_ticks = int(delta_x_veh*k_encoder_tpm)
         measurement.encoder_valid = True
-        measurement.imu_acc_x = state.acc_x*k_imu_tpms2
-        measurement.imu_acc_y = np.tan(k_steering_input*state.steer_command)*state.velocity/vehicle_length*state.velocity*k_imu_tpms2
-        measurement.imu_acc_z = 800
+        measurement.imu_acc_x = state.acc_x/9.81*8196
+        measurement.imu_acc_y = (-np.sin(state.yaw)*acc_x_world+np.cos(state.yaw)*acc_y_world)/9.81*8196
+        measurement.imu_acc_z = 8196
         measurement.imu_yaw = state.yaw
         measurement.imu_valid = True
         measurement.rc_output_accelerator = state.acc_command

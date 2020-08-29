@@ -164,6 +164,7 @@ catkin_install_python(PROGRAMS
   scripts/kinematic_simulator.py
   scripts/birdview_visualizer.py
   scripts/state_estimator.py
+  scripts/state_estimator_simple.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
